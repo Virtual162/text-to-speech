@@ -17,7 +17,7 @@ TTS_TextData= pd.DataFrame(data=TTS_Dataset, columns=['Text', 'AudioFileName'])
 if TTS_TextData['Text'].str == True:
     print ("テキストデータに文字以外の物はありません")　#Text only contains str values
     else:
-        print ("エラー：テキストデータの'Text'列に文字以外の物は含まれています。再度データを確認してください。")
+        print ("エラー：'Text'列に文字以外の物は含まれています。再度データを確認してください。")
         
 
 # 音声に変換したい文章
