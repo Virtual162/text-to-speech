@@ -1,5 +1,5 @@
-pip install ibm-watson
-pip install pandas
+from ast import Or
+from asyncio.windows_events import NULL
 import json, pandas as pd
 from ibm_watson import TextToSpeechV1
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
@@ -11,28 +11,32 @@ with open("./auth.json",'r') as auth:
     apikey= auth_info['apikey']
     url=auth_info['url']
 
-#Text-to-speech向けのCSVファイルの読み取り
-TTS_Dataset = pd.read_csv("filepath or URL")
-TTS_TextData= pd.DataFrame(data=TTS_Dataset, columns=['Text', 'AudioFileName'])
-if TTS_TextData['Text'].str == True:
-    print ("テキストデータに文字以外の物はありません")　#Text only contains str values
-    else:
-        print ("エラー：'Text'列に文字以外の物は含まれています。再度データを確認してください。")
-        
+#Text-to-speech向けのCSVファイルの読み取り。CSVファイルの保存先"CSV Location"を変更してください
+TTS_Dataset = pd.read_csv("CSV Location", header= 'infer')
+print(TTS_Dataset.head())
 
-# 音声に変換したい文章
-text='ちなみに、先ほど探していたのは、こちらの資料でしょう。'
-
-# setup service
+#setup service
 authenticator = IAMAuthenticator(apikey)
 tts = TextToSpeechV1(authenticator=authenticator)
 tts.set_service_url(url)
 
-# 音声ファイル作成
-# Windowsでは完成してファイルはユーザーの/Docments/text-to-speech-main/フォルダーに保存されます。
-with open('./audio.mp3', 'wb') as audio_file: 　# audio file name should match the name in the \
-    # 'AudioFileName' column for each row of data in the 'text column'
-    res = tts.synthesize(text, accept='audio/mp3', voice='ja-JP_EmiV3Voice').get_result()
-    audio_file.write(res.content)
-    print("全てのオーディオファイルはユーザーの/Docments/text-to-speech-main/フォスターに保存されています。")
-
+# 音声に変換したい文章とデータ確認
+df = TTS_Dataset
+length =len(TTS_Dataset)
+print(length)
+TextDataList = df.Text
+for x in range(length):
+    print(df.Text[x])
+    if df.Text[x].isdigit() == True:
+        print('ERROR:テキスト桁に数字が入っています。再度確認してください。')
+        break
+    if df.AudioFileName[x] == NULL  or not df.AudioFileName[x].endswith(('.mp3')):
+        print('ERROR:出力するオーディオファイル名が記載されていないか、「.mp3」フォーマットがファイル名に入っていません')
+        break
+    # 音声ファイル作成
+    with open(df.AudioFileName[x], 'wb') as audio_file:  #expected str, bytes or os.PathLike object, not list
+        res = tts.synthesize(df.Text[x], accept='audio/mp3', voice='ja-JP_EmiV3Voice').get_result()
+        audio_file.write(res.content)
+        # Windowsでは完成してファイルはユーザーの/Docments/text-to-speech-main/フォルダーに保存されます。
+        print('全てのオーディオファイルは「text-to-speech-main」フォルダーに保存されています。')
+print('end')
